@@ -19,8 +19,8 @@ const nextConfig = {
     // Default to localhost for development, cloud URL for production
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 
       (process.env.NODE_ENV === 'production' 
-        ? 'https://your-api-gateway-url.com' 
-        : 'http://kong:8000');
+        ? 'https://your-production-api-gateway.com' 
+        : 'http://localhost:8000');
     
     return [
       {
