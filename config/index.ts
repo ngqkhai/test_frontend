@@ -67,6 +67,19 @@ export const config = {
       unregister: (id: string) => `/api/events/${id}/unregister`,
     },
     
+    // Campaign endpoints
+    campaigns: {
+      list: '/api/campaigns',
+      published: '/api/campaigns/published',
+      clubPublished: (clubId: string) => `/api/campaigns/clubs/${clubId}/published`,
+      detail: (id: string) => `/api/campaigns/${id}`,
+      create: '/api/campaigns',
+      update: (id: string) => `/api/campaigns/${id}`,
+      apply: (id: string) => `/api/campaigns/${id}/apply`,
+      applications: (id: string) => `/api/campaigns/${id}/applications`,
+      myApplications: '/api/campaigns/applications/my',
+    },
+    
     // Notification endpoints
     notifications: {
       list: '/api/notifications',

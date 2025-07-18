@@ -15,6 +15,7 @@ export {
 export { clubService, type Club, type ClubMember, type ClubCategory, type CreateClubRequest, type UpdateClubRequest, type ClubListQuery, type ClubListResponse } from './club.service';
 export { eventService, type Event, type EventParticipant, type CreateEventRequest, type UpdateEventRequest, type EventListQuery, type EventListResponse } from './event.service';
 export { notificationService, type Notification, type NotificationListQuery, type NotificationListResponse } from './notification.service';
+export { campaignService, type Campaign, type CampaignApplication } from './campaign.service';
 
 // Re-export API utilities
 export { api, getToken, setToken, removeToken, getRefreshToken, setRefreshToken, type ApiResponse, type ApiError } from '@/lib/api';

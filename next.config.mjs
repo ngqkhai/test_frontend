@@ -14,22 +14,7 @@ const nextConfig = {
   compress: true,
   // Optimize for production
   poweredByHeader: false,
-  async rewrites() {
-    // Only enable API proxy in development
-    if (process.env.NODE_ENV === 'development') {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
-      
-      return [
-        {
-          source: '/api/:path*',
-          destination: `${apiBaseUrl}/api/:path*`,
-        },
-      ];
-    }
-    
-    // No rewrites in production - let the frontend handle missing API gracefully
-    return [];
-  },
+  // Remove rewrites - use direct API calls instead for simplicity
   async headers() {
     return [
       {

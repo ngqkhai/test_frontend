@@ -24,7 +24,9 @@ import { ActivitiesTab } from "@/components/activities-tab"
 import { ApplicationForm } from "@/components/application-form"
 import { useAuthStore } from "@/stores/auth-store"
 import { useToast } from "@/hooks/use-toast"
+import { useClubCampaigns } from "@/hooks/use-campaigns"
 import { clubService, ClubDetail, Event as ApiEvent, Recruitment as ApiRecruitment } from "@/services/club.service"
+import { campaignService } from "@/services/campaign.service"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog"
 
 // Transform API event to component event
@@ -53,20 +55,6 @@ const transformRecruitmentForCard = (apiRecruitment: ApiRecruitment): any => {
   }
 }
 
-// API lấy các campaign tuyển thành viên đã publish của club
-const fetchClubRecruitmentCampaigns = async (clubId: string) => {
-  try {
-    const res = await fetch(`/api/campaigns/clubs/${clubId}/published`);
-    const data = await res.json();
-    if (data.success && Array.isArray(data.data)) {
-      return data.data;
-    }
-    return [];
-  } catch (e) {
-    return [];
-  }
-};
-
 // Component hiển thị chi tiết campaign trong popup
 function CampaignDetailModal({ campaignId, open, onClose }: { campaignId: string, open: boolean, onClose: () => void }) {
   const [loading, setLoading] = useState(true);
@@ -74,21 +62,28 @@ function CampaignDetailModal({ campaignId, open, onClose }: { campaignId: string
   const [campaign, setCampaign] = useState<any>(null);
 
   useEffect(() => {
-    if (!open) return;
-    setLoading(true);
-    setError(null);
-    setCampaign(null);
-    fetch(`/api/campaigns/${campaignId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.data) {
-          setCampaign(data.data);
+    if (!open || !campaignId) return;
+    
+    const loadCampaign = async () => {
+      setLoading(true);
+      setError(null);
+      setCampaign(null);
+      
+      try {
+        const response = await campaignService.getCampaignDetail(campaignId);
+        if (response.success && response.data) {
+          setCampaign(response.data);
         } else {
-          setError(data.message || "Không thể tải thông tin chiến dịch.");
+          setError(response.message || "Không thể tải thông tin chiến dịch.");
         }
-      })
-      .catch(() => setError("Không thể tải thông tin chiến dịch."))
-      .finally(() => setLoading(false));
+      } catch (err: any) {
+        setError(err.message || "Không thể tải thông tin chiến dịch.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadCampaign();
   }, [campaignId, open]);
 
   return (
@@ -153,31 +148,14 @@ export default function ClubDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isJoining, setIsJoining] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [clubCampaigns, setClubCampaigns] = useState<any[]>([]);
-  const [campaignsLoading, setCampaignsLoading] = useState(false);
-  const [campaignsError, setCampaignsError] = useState<string | null>(null);
   const [openCampaignDetail, setOpenCampaignDetail] = useState<string | null>(null);
+  
+  // Use the campaigns hook for cleaner data management
+  const { campaigns: clubCampaigns, loading: campaignsLoading, error: campaignsError } = useClubCampaigns(clubId);
 
   useEffect(() => {
     fetchClubData()
   }, [clubId])
-
-  const loadClubCampaigns = useCallback(async () => {
-    setCampaignsLoading(true);
-    setCampaignsError(null);
-    try {
-      const data = await fetchClubRecruitmentCampaigns(clubId);
-      setClubCampaigns(data);
-    } catch (e) {
-      setCampaignsError("Không thể tải đợt tuyển thành viên.");
-    } finally {
-      setCampaignsLoading(false);
-    }
-  }, [clubId]);
-
-  useEffect(() => {
-    loadClubCampaigns();
-  }, [loadClubCampaigns]);
 
   const fetchClubData = async () => {
     setIsLoading(true)

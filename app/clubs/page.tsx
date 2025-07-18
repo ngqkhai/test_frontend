@@ -11,6 +11,7 @@ import { RecruitmentBanner } from "@/components/recruitment-banner"
 import { useCallback } from "react"
 import { useClubsStore } from "@/stores/clubs-store"
 import { clubService } from "@/services/club.service"
+import { useCampaigns } from "@/hooks/use-campaigns"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -19,27 +20,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-
-// Recruitment API: GET /api/campaigns/published
-const fetchActiveRecruitments = async () => {
-  try {
-    const res = await fetch("/api/campaigns/published?limit=5");
-    const data = await res.json();
-    if (data.success && Array.isArray(data.data)) {
-      return data.data.map((c: any) => ({
-        campaign_id: c.id,
-        club_id: c.club_id,
-        club_name: c.club_name,
-        title: c.title,
-        deadline: c.end_date,
-        logo_url: c.logo_url || "/placeholder.svg?height=60&width=60",
-      }));
-    }
-    return [];
-  } catch (e) {
-    return [];
-  }
-};
 
 export default function ClubsPage() {
   // Use the clubs store
@@ -59,33 +39,29 @@ export default function ClubsPage() {
   const [categoryInput, setCategoryInput] = useState("All")
   const [categories, setCategories] = useState<string[]>([])
   const [categoriesLoading, setCategoriesLoading] = useState(false)
-  const [activeRecruitments, setActiveRecruitments] = useState<any[]>([]);
-  const [recruitmentsLoading, setRecruitmentsLoading] = useState(true);
-  const [recruitmentsError, setRecruitmentsError] = useState<string | null>(null);
   const [recruitmentPage, setRecruitmentPage] = useState(1);
+  
+  // Use campaigns hook for recruitment data
+  const { campaigns: activeRecruitments, loading: recruitmentsLoading, error: recruitmentsError, loadPublishedCampaigns } = useCampaigns();
+  
   const campaignsPerPage = 3;
   const totalRecruitmentPages = Math.ceil(activeRecruitments.length / campaignsPerPage);
   const pagedRecruitments = useMemo(() => {
     const start = (recruitmentPage - 1) * campaignsPerPage;
-    return activeRecruitments.slice(start, start + campaignsPerPage);
+    return activeRecruitments.slice(start, start + campaignsPerPage).map(c => ({
+      campaign_id: c.id,
+      club_id: c.club_id,
+      club_name: c.club_name || 'Unknown Club',
+      title: c.title,
+      deadline: c.end_date,
+      logo_url: "/placeholder.svg?height=60&width=60",
+    }));
   }, [activeRecruitments, recruitmentPage]);
 
-  const loadRecruitments = useCallback(async () => {
-    setRecruitmentsLoading(true);
-    setRecruitmentsError(null);
-    try {
-      const data = await fetchActiveRecruitments();
-      setActiveRecruitments(data);
-    } catch (e: any) {
-      setRecruitmentsError("Không thể tải chiến dịch tuyển thành viên.");
-    } finally {
-      setRecruitmentsLoading(false);
-    }
-  }, []);
-
+  // Load campaigns on mount
   useEffect(() => {
-    loadRecruitments();
-  }, [loadRecruitments]);
+    loadPublishedCampaigns(5); // Load 5 campaigns for the banner
+  }, [loadPublishedCampaigns]);
 
   // Load clubs on component mount
   useEffect(() => {
