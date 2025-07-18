@@ -17,10 +17,7 @@ const nextConfig = {
   async rewrites() {
     // Proxy API calls to Kong gateway for all environments
     // Default to localhost for development, cloud URL for production
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 
-      (process.env.NODE_ENV === 'production' 
-        ? 'https://your-production-api-gateway.com' 
-        : 'http://localhost:8000');
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_UR
     
     return [
       {
